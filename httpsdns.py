@@ -241,13 +241,18 @@ def https_dns_query_wire_format(domain, doh_url=None, query_type='A', timeout=5)
         # 计算往返时间
         rtt = (time.time() - start_time) * 1000  # 毫秒
         
-        # 这里我们不解析完整的DNS响应，只返回成功状态和RTT
-        # 实际应用中可能需要完整解析响应
-        return {
-            'status': 'success',
-            'rtt': rtt,
-            'answers': [{'name': domain, 'type': query_type, 'data': '(binary response)'}]
-        }
+        # 导入解析DNS响应的函数
+        from udpdns import parse_dns_response
+        
+        # 解析二进制响应
+        parsed = parse_dns_response(binary_response)
+        
+        if parsed.get('status') == 'error':
+            return parsed
+        
+        # 添加RTT信息
+        parsed['rtt'] = rtt
+        return parsed
     
     except Exception as e:
         return {
