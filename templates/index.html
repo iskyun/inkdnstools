@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ink DNS网络测试工具</title>
+    <!-- 引入Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 引入Font Awesome图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            padding-bottom: 70px; /* 为footer留出空间 */
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .tab-container {
+            margin-bottom: 20px;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background-color: var(--light-color);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .tab-button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+            color: var(--secondary-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.25);
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            background-color: white;
+            cursor: pointer;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .results {
+            display: none;
+            margin-top: 30px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .results h3 {
+            margin-top: 0;
+            color: var(--secondary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .ping-item, .dns-item {
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .success {
+            background-color: rgba(46, 204, 113, 0.2);
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .timeout {
+            background-color: rgba(243, 156, 18, 0.2);
+            border-left: 4px solid var(--warning-color);
+        }
+        
+        .error {
+            background-color: rgba(231, 76, 60, 0.2);
+            border-left: 4px solid var(--danger-color);
+        }
+        
+        .dns-answers {
+            margin-left: 20px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgba(52, 152, 219, 0.1);
+            border-radius: 6px;
+        }
+        
+        .dns-record {
+            font-family: monospace;
+            padding: 5px 0;
+            font-size: 14px;
+        }
+        
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .checkbox-container input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        
+        .protocol-section {
+            display: none;
+        }
+        
+        .protocol-section.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .tab-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+                margin-right: 0;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+        }
+        
+        /* 页脚样式 */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--secondary-color);
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+        
+        .footer a:hover {
+            color: #1abc9c;
+            text-decoration: underline;
+        }
+        
+        /* 表单行样式 */
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-row > div {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-network-wired"></i> Ink 网络测试工具</h1>
+        </div>
+        
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="switchTab('ping')">Ping 测试</button>
+                <button class="tab-button" onclick="switchTab('dns')">DNS 查询测试</button>
+            </div>
+            
+            <!-- Ping 测试 -->
+            <div id="ping-tab" class="tab-content active">
+                <h2><i class="fas fa-exchange-alt"></i> Ping 测试</h2>
+                
+                <div class="form-group">
+                    <label class="form-label">协议类型</label>
+                    <select id="ping-protocol" class="form-select">
+                        <option value="udp">UDP</option>
+                        <option value="tcp">TCP</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">目标IP</label>
+                        <input type="text" id="ping-ip" class="form-control" placeholder="例如: 8.8.8.8">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">端口</label>
+                        <input type="number" id="ping-port" class="form-control" value="53">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">数据包长度 (字节)</label>
+                        <input type="number" id="ping-length" class="form-control" value="56">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">间隔 (秒)</label>
+                        <input type="number" id="ping-interval" class="form-control" value="1" step="0.1" min="0.1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">次数</label>
+                        <input type="number" id="ping-count" class="form-control" value="4" min="1">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <button id="ping-start-btn" class="btn btn-primary" onclick="startPingTest()"><i class="fas fa-play"></i> 开始测试</button>
+                    <button id="ping-cancel-btn" class="btn btn-danger" onclick="cancelPingTest()" disabled><i class="fas fa-stop"></i> 取消测试</button>
+                </div>
+                
+                <div id="ping-loading" class="loading">
+                    <div class="spinner"></div>
+                    <p>测试中，请稍候...</p>
+                </div>
+                
+                <div id="ping-results" class="results">
+                    <h3><i class="fas fa-chart-line"></i> 测试结果</h3>
+                    <div id="ping-results-content"></div>
+                    <div id="ping-stats" class="mt-4"></div>
+                </div>
+            </div>
+            
+            <!-- DNS 查询测试 -->
+            <div id="dns-tab" class="tab-content">
+                <h2><i class="fas fa-search"></i> DNS 查询测试</h2>
+                <h3>如果服务器部署在国内国外部分DNS服务商可能会失效</h3>
+                <!-- 添加展开按钮和DNS服务器信息 -->
+                <div class="dns-servers-info mb-3">
+                    <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#dnsServersCollapse" aria-expanded="false" aria-controls="dnsServersCollapse">
+                        <i class="fas fa-info-circle"></i> 查看公开DNS服务器IP
+                    </button>
+                    <div class="collapse mt-2" id="dnsServersCollapse">
+                        <div class="card card-body">
+                            <h5>公开DNS服务器IP列表</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>IPv4</h6>
+                                    <ul class="list-unstyled">
+                                        <li><strong>Google DNS:</strong> 8.8.8.8, 8.8.4.4</li>
+                                        <li><strong>Cloudflare:</strong> 1.1.1.1, 1.0.0.1</li>
+                                        <li><strong>Quad9:</strong> 9.9.9.9, 149.112.112.112</li>
+                                        <li><strong>OpenDNS:</strong> 208.67.222.222, 208.67.220.220</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>IPv6</h6>
+                                    <ul class="list-unstyled">
+                                        <li><strong>Google DNS:</strong> 2001:4860:4860::8888, 2001:4860:4860::8844</li>
+                                        <li><strong>Cloudflare:</strong> 2606:4700:4700::1111, 2606:4700:4700::1001</li>
+                                        <li><strong>Quad9:</strong> 2620:fe::fe, 2620:fe::9</li>
+                                        <li><strong>OpenDNS:</strong> 2620:119:35::35, 2620:119:53::53</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>其他</h6>
+                                    <ul class="list-unstyled">
+                                        <li><strong>Yandex:</strong> 77.88.8.8</li>
+                                        <li><strong>Aliyun:</strong> 223.5.5.5, 223.6.6.6</li>
+                                        <li><strong>Tencent:</strong> 119.29.29.29, 119.28.28.28</li>
+                                        <li><strong>360:</strong> 123.125.81.6, 123.125.81.7</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>HTTPS</h6>
+                                    <ul class="list-unstyled">
+                                        <li><strong>Google:</strong> https://dns.google/dns-query</li>
+                                        <li><strong>Cloudflare:</strong> https://cloudflare-dns.com/dns-query</li>
+                                        <li><strong>Quad9:</strong> https://dns9.quad9.net/dns-query</li>
+                                        <li><strong>OpenDNS:</strong> https://doh.opendns.com/dns-query</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="form-group">
+                    <label class="form-label">协议类型</label>
+                    <select id="dns-protocol" class="form-select" onchange="switchDnsProtocol()">
+                        <option value="udp">UDP</option>
+                        <option value="tcp">TCP</option>
+                        <option value="https">HTTPS (DoH)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">域名</label>
+                    <input type="text" id="dns-domain" class="form-control" placeholder="例如: www.example.com">
+                </div>
+                
+                <!-- UDP/TCP 特定选项 -->
+                <div id="dns-udp-tcp-options" class="protocol-section active">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">DNS服务器IP</label>
+                            <input type="text" id="dns-server" class="form-control" value="8.8.8.8">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">端口</label>
+                            <input type="number" id="dns-port" class="form-control" value="53">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- HTTPS 特定选项 -->
+                <div id="dns-https-options" class="protocol-section">
+                    <div class="form-group">
+                        <label class="form-label">DoH 提供商</label>
+                        <select id="dns-doh-provider" class="form-select" onchange="updateDohUrl()">
+                            <option value="google">Google</option>
+                            <option value="cloudflare">Cloudflare</option>
+                            <option value="cloudflarev1">Cloudflare 1.1.1.1</option>
+                            <option value="cloudflarev2">Cloudflare 1.0.0.1</option>
+                            <option value="cloudflarev3">Cloudflare one.one.one.one</option>
+                            <option value="Yandex">Yandex</option>
+                            <option value="aliyun">Aliyun</option>
+                            <option value="aliyunv1">Aliyun 223.5.5.5</option>
+                            <option value="aliyunv2">Aliyun 223.6.6.6</option>
+                            <option value="Tencent">Tencent</option>
+                            <option value="Tencentv1">Tencent v1</option>
+                            <option value="Tencentv2">Tencent v2</option>
+                            <option value="Tencentv3">Tencent v3</option>
+                            <option value="360">360</option>
+                            <option value="custom">自定义</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">DoH URL</label>
+                        <input type="text" id="dns-doh-url" class="form-control" value="https://dns.google/dns-query">
+                    </div>
+                    
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="dns-wire-format" checked>
+                        <label for="dns-wire-format">使用Wire格式</label>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">查询类型</label>
+                        <select id="dns-type" class="form-select">
+                            <option value="A">A</option>
+                            <option value="AAAA">AAAA</option>
+                            <option value="CNAME">CNAME</option>
+                            <option value="MX">MX</option>
+                            <option value="NS">NS</option>
+                            <option value="TXT">TXT</option>
+                            <option value="SOA">SOA</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">次数</label>
+                        <input type="number" id="dns-count" class="form-control" value="4" min="1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">间隔 (秒)</label>
+                        <input type="number" id="dns-interval" class="form-control" value="1" step="0.1" min="0.1">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <button id="dns-start-btn" class="btn btn-primary" onclick="startDnsTest()"><i class="fas fa-play"></i> 开始测试</button>
+                    <button id="dns-cancel-btn" class="btn btn-danger" onclick="cancelDnsTest()" disabled><i class="fas fa-stop"></i> 取消测试</button>
+                </div>
+                
+                <div id="dns-loading" class="loading">
+                    <div class="spinner"></div>
+                    <p>测试中，请稍候...</p>
+                </div>
+                
+                <div id="dns-results" class="results">
+                    <h3><i class="fas fa-chart-line"></i> 测试结果</h3>
+                    <div id="dns-results-content"></div>
+                    <div id="dns-stats" class="mt-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 Ink DNS网络测试工具 | 提供高效的网络诊断服务 | <a href="https://github.com/iskyun/inkdnstools" target="_blank"><i class="fab fa-github"></i> GitHub Inkdnstools</a></p>
+        </div>
+    </footer>
+    
+    <!-- 引入Bootstrap JS和Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // 全局变量
+        let currentPingTestId = null;
+        let pingStatusCheckInterval = null;
+        let currentDnsTestId = null;
+        let dnsStatusCheckInterval = null;
+        
+        // DoH服务器URL映射
+        const DOH_SERVERS = {
+            'google': 'https://dns.google/dns-query',
+            'cloudflare': 'https://cloudflare-dns.com/dns-query',
+            'cloudflarev1': 'https://1.1.1.1/dns-query',
+            'cloudflarev2': 'https://1.0.0.1/dns-query',
+            'cloudflarev3': 'https://one.one.one.one/dns-query',
+            'Yandex': 'https://77.88.8.8/dns-query',
+            'quad9': 'https://dns.quad9.net/dns-query',
+            'aliyun': 'https://dns.alidns.com/dns-query',
+            'aliyunv1': 'https://223.5.5.5/dns-query',
+            'aliyunv2': 'https://223.6.6.6/dns-query',
+            'Tencent': 'https://doh.pub/dns-query',
+            'Tencentv1': 'https://sm2.doh.pub/dns-query',
+            'Tencentv2': 'https://1.12.12.12/dns-query',
+            'Tencentv3': 'https://120.53.53.53/dns-query',
+            '360': 'https://doh.360.cn/dns-query',
+            'custom': ''
+        };
+        
+        // 切换选项卡
+        function switchTab(tabName) {
+            // 隐藏所有选项卡内容
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // 取消所有选项卡按钮的活动状态
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 显示选定的选项卡内容
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            // 设置选定的选项卡按钮为活动状态
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                if (btn.textContent.toLowerCase().includes(tabName)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        // 切换DNS协议
+        function switchDnsProtocol() {
+            const protocol = document.getElementById('dns-protocol').value;
+            
+            // 隐藏所有协议特定选项
+            document.querySelectorAll('.protocol-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // 显示选中的协议特定选项
+            if (protocol === 'udp' || protocol === 'tcp') {
+                document.getElementById('dns-udp-tcp-options').classList.add('active');
+            } else if (protocol === 'https') {
+                document.getElementById('dns-https-options').classList.add('active');
+                updateDohUrl(); // 更新DoH URL
+            }
+        }
+        
+        // 更新DoH URL
+        function updateDohUrl() {
+            const provider = document.getElementById('dns-doh-provider').value;
+            const dohUrlInput = document.getElementById('dns-doh-url');
+            
+            if (provider === 'custom') {
+                dohUrlInput.readOnly = false;
+            } else {
+                dohUrlInput.value = DOH_SERVERS[provider];
+                dohUrlInput.readOnly = true;
+            }
+        }
+        
+        // UDP Ping 测试功能
+        async function startPingTest() {
+            const protocol = document.getElementById('ping-protocol').value;
+            const ip = document.getElementById('ping-ip').value;
+            const port = document.getElementById('ping-port').value;
+            const packet_len = document.getElementById('ping-packet-len').value;
+            const interval = document.getElementById('ping-interval').value;
+            const count = document.getElementById('ping-count').value;
+            
+            if (!ip || !port) {
+                alert('请输入目标IP和端口');
+                return;
+            }
+            
+            // 清空之前的结果
+            document.getElementById('ping-results-content').innerHTML = '';
+            document.getElementById('ping-stats').innerHTML = '';
+            document.getElementById('ping-results').style.display = 'none';
+            document.getElementById('ping-loading').style.display = 'block';
+            
+            // 禁用开始按钮，启用取消按钮
+            document.getElementById('ping-start-btn').disabled = true;
+            document.getElementById('ping-cancel-btn').disabled = false;
+            
+            try {
+                // 根据协议选择不同的API端点
+                const apiEndpoint = protocol === 'udp' ? '/api/ping' : '/api/tcpping';
+                
+                const response = await fetch(apiEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ip: ip,
+                        port: port,
+                        packet_len: packet_len,
+                        interval: interval,
+                        count: count
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.test_id) {
+                    currentPingTestId = data.test_id;
+                    // 开始定期检查状态
+                    pingStatusCheckInterval = setInterval(() => checkPingStatus(protocol), 1000);
+                } else {
+                    alert('启动测试失败: ' + (data.error || '未知错误'));
+                    resetPingUI();
+                }
+            } catch (error) {
+                alert('请求错误: ' + error);
+                resetPingUI();
+            }
+        }
+        
+        async function checkPingStatus(protocol) {
+            if (!currentPingTestId) return;
+            
+            try {
+                // 根据协议选择不同的状态检查API
+                const statusEndpoint = protocol === 'udp' ? 
+                    `/api/ping/status/${currentPingTestId}` : 
+                    `/api/tcpping/status/${currentPingTestId}`;
+                
+                const response = await fetch(statusEndpoint);
+                const data = await response.json();
+                
+                if (data.status === 'completed') {
+                    // 测试完成，显示结果
+                    clearInterval(pingStatusCheckInterval);
+                    displayPingResults(data.result, protocol);
+                    resetPingUI();
+                } else if (data.status === 'error') {
+                    alert('测试出错: ' + data.message);
+                    clearInterval(pingStatusCheckInterval);
+                    resetPingUI();
+                }
+                // 如果状态是running，继续等待
+            } catch (error) {
+                console.error('检查状态错误:', error);
+            }
+        }
+        
+        async function cancelPingTest() {
+            if (!currentPingTestId) return;
+            
+            try {
+                // 根据测试ID前缀判断协议类型
+                const protocol = currentPingTestId.startsWith('tcp_') ? 'tcp' : 'udp';
+                const cancelEndpoint = protocol === 'udp' ? 
+                    `/api/ping/cancel/${currentPingTestId}` : 
+                    `/api/tcpping/cancel/${currentPingTestId}`;
+                
+                await fetch(cancelEndpoint, {
+                    method: 'POST'
+                });
+                clearInterval(pingStatusCheckInterval);
+                resetPingUI();
+                alert('测试已取消');
+            } catch (error) {
+                console.error('取消测试错误:', error);
+            }
+        }
+        
+        function displayPingResults(result, protocol) {
+            const resultsDiv = document.getElementById('ping-results');
+            const pingResultsDiv = document.getElementById('ping-results-content');
+            const statsDiv = document.getElementById('ping-stats');
+            
+            resultsDiv.style.display = 'block';
+            
+            if (result.error) {
+                pingResultsDiv.innerHTML = `<div class="error">错误: ${result.error}</div>`;
+                return;
+            }
+            
+            // 显示每个ping的结果
+            let html = '';
+            for (const ping of result.results) {
+                if (ping.status === 'success') {
+                    html += `<div class="ping-item success">Reply from ${document.getElementById('ping-ip').value}: seq=${ping.seq} time=${ping.time} ms</div>`;
+                } else if (ping.status === 'timeout') {
+                    html += `<div class="ping-item timeout">Request timed out: seq=${ping.seq}</div>`;
+                } else if (ping.status === 'error') {
+                    html += `<div class="ping-item error">Error: seq=${ping.seq} - ${ping.message || '未知错误'}</div>`;
+                }
+            }
+            pingResultsDiv.innerHTML = html;
+            
+            // 显示统计信息
+            const stats = result.stats;
+            let statsHtml = `<h3>${protocol.toUpperCase()} Ping 统计信息</h3>`;
+            statsHtml += `<div>发送 = ${stats.transmitted}, 接收 = ${stats.received}, 丢包率 = ${stats.loss}%</div>`;
+            
+            if (stats.received > 0) {
+                statsHtml += `<div>往返时间 (ms): 最小 = ${stats.min}, 最大 = ${stats.max}, 平均 = ${stats.avg}</div>`;
+            }
+            
+            statsDiv.innerHTML = statsHtml;
+        }
+        
+        function resetPingUI() {
+            document.getElementById('ping-loading').style.display = 'none';
+            document.getElementById('ping-start-btn').disabled = false;
+            document.getElementById('ping-cancel-btn').disabled = true;
+            currentPingTestId = null;
+        }
+        
+        // DNS 查询测试功能
+        async function startDnsTest() {
+            const protocol = document.getElementById('dns-protocol').value;
+            const domain = document.getElementById('dns-domain').value;
+            const query_type = document.getElementById('dns-type').value;
+            const count = document.getElementById('dns-count').value;
+            const interval = document.getElementById('dns-interval').value;
+            
+            if (!domain) {
+                alert('请输入域名');
+                return;
+            }
+            
+            // 清空之前的结果
+            document.getElementById('dns-results-content').innerHTML = '';
+            document.getElementById('dns-stats').innerHTML = '';
+            document.getElementById('dns-results').style.display = 'none';
+            document.getElementById('dns-loading').style.display = 'block';
+            
+            // 禁用开始按钮，启用取消按钮
+            document.getElementById('dns-start-btn').disabled = true;
+            document.getElementById('dns-cancel-btn').disabled = false;
+            
+            try {
+                let apiEndpoint = '';
+                let requestData = {
+                    domain: domain,
+                    query_type: query_type,
+                    count: count,
+                    interval: interval
+                };
+                
+                // 根据协议设置不同的API端点和请求数据
+                if (protocol === 'udp') {
+                    apiEndpoint = '/api/dns';
+                    requestData.server = document.getElementById('dns-server').value;
+                    requestData.port = document.getElementById('dns-port').value;
+                } else if (protocol === 'tcp') {
+                    apiEndpoint = '/api/tcpdns';
+                    requestData.server = document.getElementById('dns-server').value;
+                    requestData.port = document.getElementById('dns-port').value;
+                } else if (protocol === 'https') {
+                    apiEndpoint = '/api/httpsdns';
+                    const provider = document.getElementById('dns-doh-provider').value;
+                    if (provider === 'custom') {
+                        requestData.doh_url = document.getElementById('dns-doh-url').value;
+                    } else {
+                        requestData.doh_url = DOH_SERVERS[provider];
+                    }
+                    requestData.use_wire_format = document.getElementById('dns-wire-format').checked;
+                }
+                
+                const response = await fetch(apiEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.test_id) {
+                    currentDnsTestId = data.test_id;
+                    // 开始定期检查状态
+                    dnsStatusCheckInterval = setInterval(() => checkDnsStatus(protocol), 1000);
+                } else {
+                    alert('启动测试失败: ' + (data.error || '未知错误'));
+                    resetDnsUI();
+                }
+            } catch (error) {
+                alert('请求错误: ' + error);
+                resetDnsUI();
+            }
+        }
+        
+        async function checkDnsStatus(protocol) {
+            if (!currentDnsTestId) return;
+            
+            try {
+                // 根据协议选择不同的状态检查API
+                let statusEndpoint = '';
+                if (protocol === 'udp') {
+                    statusEndpoint = `/api/dns/status/${currentDnsTestId}`;
+                } else if (protocol === 'tcp') {
+                    statusEndpoint = `/api/tcpdns/status/${currentDnsTestId}`;
+                } else if (protocol === 'https') {
+                    statusEndpoint = `/api/httpsdns/status/${currentDnsTestId}`;
+                }
+                
+                const response = await fetch(statusEndpoint);
+                const data = await response.json();
+                
+                if (data.status === 'completed') {
+                    // 测试完成，显示结果
+                    clearInterval(dnsStatusCheckInterval);
+                    displayDnsResults(data.result);
+                    resetDnsUI();
+                } else if (data.status === 'error') {
+                    alert('测试出错: ' + data.message);
+                    clearInterval(dnsStatusCheckInterval);
+                    resetDnsUI();
+                }
+                // 如果状态是running，继续等待
+            } catch (error) {
+                console.error('检查状态错误:', error);
+            }
+        }
+        
+        async function cancelDnsTest() {
+            if (!currentDnsTestId) return;
+            
+            try {
+                const protocol = document.getElementById('dns-protocol').value;
+                let cancelEndpoint = '';
+                
+                // 根据协议选择不同的取消API
+                if (protocol === 'udp') {
+                    cancelEndpoint = `/api/dns/cancel/${currentDnsTestId}`;
+                } else if (protocol === 'tcp') {
+                    cancelEndpoint = `/api/tcpdns/cancel/${currentDnsTestId}`;
+                } else if (protocol === 'https') {
+                    cancelEndpoint = `/api/httpsdns/cancel/${currentDnsTestId}`;
+                }
+                
+                await fetch(cancelEndpoint, {
+                    method: 'POST'
+                });
+                clearInterval(dnsStatusCheckInterval);
+                resetDnsUI();
+                alert('测试已取消');
+            } catch (error) {
+                console.error('取消测试错误:', error);
+            }
+        }
+        
+        function displayDnsResults(result) {
+            const resultsDiv = document.getElementById('dns-results');
+            const dnsResultsDiv = document.getElementById('dns-results-content');
+            const statsDiv = document.getElementById('dns-stats');
+            
+            resultsDiv.style.display = 'block';
+            
+            if (result.error) {
+                dnsResultsDiv.innerHTML = `<div class="error">错误: ${result.error}</div>`;
+                return;
+            }
+            
+            // 显示查询信息
+            let html = `<div class="mb-3"><strong>域名:</strong> ${result.domain}</div>`;
+            
+            // 根据不同协议显示不同的服务器信息
+            if (result.server) {
+                html += `<div class="mb-3"><strong>DNS服务器:</strong> ${result.server}:${result.port}</div>`;
+            } else if (result.doh_url) {
+                html += `<div class="mb-3"><strong>DoH服务器:</strong> ${result.doh_url}</div>`;
+            }
+            
+            html += `<div class="mb-3"><strong>查询类型:</strong> ${result.query_type}</div><hr>`;
+            
+            // 显示每次查询的结果
+            for (const query of result.results) {
+                if (query.status === 'success') {
+                    html += `<div class="dns-item success">查询 ${query.seq}: 成功，RTT = ${query.rtt} ms，找到 ${query.answers.length} 条记录</div>`;
+                    
+                    if (query.answers.length > 0) {
+                        html += `<div class="dns-answers">`;
+                        for (const answer of query.answers) {
+                            html += `<div class="dns-record">${answer.name} ${answer.ttl} IN ${answer.type} ${answer.data}</div>`;
+                        }
+                        html += `</div>`;
+                    }
+                } else if (query.status === 'timeout') {
+                    html += `<div class="dns-item timeout">查询 ${query.seq}: 超时</div>`;
+                } else {
+                    html += `<div class="dns-item error">查询 ${query.seq}: 错误 - ${query.message || '未知错误'}</div>`;
+                }
+            }
+            
+            dnsResultsDiv.innerHTML = html;
+            
+            // 显示统计信息
+            const stats = result.stats;
+            let statsHtml = '<h3><i class="fas fa-chart-bar"></i> 统计信息</h3>';
+            statsHtml += `<div>发送 = ${stats.transmitted}, 接收 = ${stats.received}, 丢包率 = ${stats.loss}%</div>`;
+            
+            if (stats.received > 0) {
+                const minRtt = stats.min_rtt || 0;
+                const avgRtt = stats.avg_rtt || 0;
+                const maxRtt = stats.max_rtt || 0;
+                statsHtml += `<div>往返时间 (ms): 最小 = ${minRtt}, 平均 = ${avgRtt}, 最大 = ${maxRtt}</div>`;
+            }
+            
+            statsDiv.innerHTML = statsHtml;
+        }
+        
+        function resetDnsUI() {
+            document.getElementById('dns-loading').style.display = 'none';
+            document.getElementById('dns-start-btn').disabled = false;
+            document.getElementById('dns-cancel-btn').disabled = true;
+            currentDnsTestId = null;
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化DNS协议选择
+            switchDnsProtocol();
+        });
+    </script>
+</body>
+</html>
