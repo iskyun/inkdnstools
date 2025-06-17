@@ -675,7 +675,7 @@
                         ip: ip,
                         port: port,
                         packet_len: packet_len,
-                        interval: interval,
+                        interval: Math.round(interval * 1000),
                         count: count
                     })
                 });
